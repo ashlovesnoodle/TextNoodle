@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TextNoodle - Secure Messaging</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #5e35b1;
+            --primary-light: #8e63ce;
+            --primary-dark: #330066;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-card.expanded {
+            max-width: 600px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .logo p {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #666;
+        }
+        
+        .auth-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .password-container {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .checkbox-container input {
+            margin-right: 0.5rem;
+        }
+        
+        /* App styles */
+        .app-container {
+            display: none;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background-color: white;
+            border-right: 1px solid #ddd;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        
+        .nav-header {
+            padding: 1rem;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .user-profile:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 1rem;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .user-info {
+            flex-grow: 1;
+        }
+        
+        .username {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .status {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .friends-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+        
+        .friend-item {
+            padding: 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .friend-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .friend-item.active {
+            background-color: #e9e0f7;
+        }
+        
+        .friend-name {
+            font-weight: 500;
+        }
+        
+        .friend-status {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .chat-container {
+            height: calc(100% - 130px);
+            padding: 1rem;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+        }
+        
+        .message-incoming {
+            background-color: #f0f0f0;
+            border-bottom-left-radius: 4px;
+            margin-right: auto;
+        }
+        
+        .message-outgoing {
+            background-color: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+            margin-left: auto;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 1rem;
+            border-top: 1px solid #eee;
+            gap: 0.5rem;
+        }
+        
+        .chat-input input {
+            flex-grow: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            outline: none;
+        }
+        
+        .chat-input button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .profile-container {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 2rem;
+        }
+        
+        .profile-avatar {
+            position: relative;
+        }
+        
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            font-weight: bold;
+        }
+        
+        .avatar-edit {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        
+        .profile-info {
+            flex-grow: 1;
+        }
+        
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .profile-bio {
+            margin-bottom: 1rem;
+            color: #555;
+        }
+        
+        .profile-stats {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 0.5rem 1rem;
+            background-color: #f5f5f5;
+            border-radius: 6px;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .profile-form {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-field {
+            flex-grow: 1;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .call-controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+        
+        .call-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .call-end {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .video-toggle {
+            background-color: white;
+            color: black;
+        }
+        
+        .mic-toggle {
+            background-color: white;
+            color: black;
+        }
+        
+        .video-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: black;
+            z-index: 90;
+        }
+        
+        .remote-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .local-video {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            border: 2px solid white;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        
+        .toggle-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .auth-card {
+                width: 95%;
+                padding: 1.5rem;
+            }
+            
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+            
+            .profile-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .profile-stats {
+                justify-content: center;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        /* Hidden elements */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Views -->
+    <div id="auth-view" class="auth-container">
+        <!-- Login View -->
+        <div id="login-view" class="auth-card">
+            <div class="logo">
+                <h1>TextNoodle</h1>
+                <p style="display: flex; align-items: center; gap: 0.25rem;">
+                    <span>End-to-end encrypted messaging</span>
+                    <span style="font-size: 0.75rem; color: #999;">by John Doe</span>
+                </p>
+            </div>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" class="form-control" required>
+                </div>
+                
+                <div class="form-group password-container">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" class="form-control" required>
+                    <span class="password-toggle" onclick="togglePassword('login-password')">
+                        <i class="far fa-eye"></i>
+                    </span>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="remember-me">
+                    <label for="remember-me">Remember me</label>
+                </div>
+                
+                <button type="submit" class="btn">Log In</button>
+                
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="#" onclick="showSignup()">Sign up</a></p>
+                    <p><a href="#">Forgot password?</a></p>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Signup View -->
+        <div id="signup-view" class="auth-card hidden">
+            <div class="logo">
+                <h1>TextNoodle</h1>
+                <p style="display: flex; align-items: center; gap: 0.25rem;">
+                    <span>Join our secure platform</span> 
+                    <span style="font-size: 0.75rem; color: #999;">by John Doe</span>
+                </p>
+            </div>
+            
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup-username">Username</label>
+                    <input type="text" id="signup-username" class="form-control" required>
+                </div>
+                
+                <div class="form-group password-container">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" class="form-control" required>
+                    <span class="password-toggle" onclick="togglePassword('signup-password')">
+                        <i class="far fa-eye"></i>
+                    </span>
+                </div>
+                
+                <div class="form-group password-container">
+                    <label for="signup-confirm-password">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" class="form-control" required>
+                    <span class="password-toggle" onclick="togglePassword('signup-confirm-password')">
+                        <i class="far fa-eye"></i>
+                    </span>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="marketing-emails" checked>
+                    <label for="marketing-emails">I want to receive product updates and security news</label>
+                </div>
+                
+                <div class="checkbox-container">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+                </div>
+                
+                <button type="submit" class="btn">Create Account</button>
+                
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="#" onclick="showLogin()">Log in</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- App View -->
+    <div id="app-view" class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="nav-header">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <h2>TextNoodle</h2>
+                    <span style="font-size: 0.8rem; color: #666;">by John Doe</span>
+                </div>
+                <button id="new-chat-btn" class="btn-secondary" style="padding: 0.5rem;">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            
+            <div class="user-profile" onclick="showProfile()">
+                <div class="profile-pic" id="sidebar-profile-pic">U</div>
+                <div class="user-info">
+                    <div class="username" id="sidebar-username">User</div>
+                    <div class="status">Online</div>
+                </div>
+                <i class="fas fa-ellipsis-v"></i>
+            </div>
+            
+            <div class="nav-header">
+                <h3>Friends</h3>
+            </div>
+            
+            <ul class="friends-list" id="friends-list">
+                <!-- Friends will be populated here -->
+            </ul>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content" id="main-content">
+            <!-- Default view - shows when no conversation is selected -->
+            <div id="default-view" style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center; padding: 2rem;">
+                <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/dc0fd014-ddb5-408f-b96a-f09ab02513a8.png" alt="Illustration of a secure lock with chat bubbles floating around it" style="width: 200px; height: 200px; margin-bottom: 2rem;">
+                <h2 style="color: var(--primary); margin-bottom: 1rem;">Welcome to TextNoodle</h2>
+                <p style="color: #666; max-width: 500px; margin-bottom: 2rem;">
+                    Your conversations are end-to-end encrypted. Select a friend to start chatting or make a video call.
+                </p>
+                <button class="btn" style="width: auto;" onclick="refreshFriends()">
+                    <i class="fas fa-sync-alt"></i> Refresh Friends List
+                </button>
+            </div>
+            
+            <!-- Chat View -->
+            <div id="chat-view" class="hidden">
+                <div class="chat-header" style="padding: 1rem; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 1rem;">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/d05ada6b-2e4a-4e82-8300-ec6790a9838b.png" alt="Profile picture of the selected friend" id="chat-friend-pic" style="width: 40px; height: 40px; border-radius: 50%;">
+                    <div>
+                        <h3 id="chat-friend-name">Friend</h3>
+                        <p id="chat-friend-status" style="font-size: 0.8rem; color: #666;">Online</p>
+                    </div>
+                    <div style="margin-left: auto; display: flex; gap: 1rem;">
+                        <button id="voice-call-btn" style="background: none; border: none; cursor: pointer;">
+                            <i class="fas fa-phone" style="color: var(--primary); font-size: 1.25rem;"></i>
+                        </button>
+                        <button id="video-call-btn" style="background: none; border: none; cursor: pointer;">
+                            <i class="fas fa-video" style="color: var(--primary); font-size: 1.25rem;"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="chat-container" id="chat-messages">
+                    <!-- Messages will be populated here -->
+                </div>
+                
+                <div class="chat-input">
+                    <input type="text" id="message-input" placeholder="Type a message...">
+                    <button id="send-message-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Video Call View -->
+            <div class="video-container hidden" id="video-call-container">
+                <video class="remote-video" id="remote-video" autoplay playsinline></video>
+                <video class="local-video" id="local-video" autoplay playsinline muted></video>
+                
+                <div class="call-controls">
+                    <button class="call-btn mic-toggle" onclick="toggleMic()">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button class="call-btn video-toggle" onclick="toggleVideo()">
+                        <i class="fas fa-video"></i>
+                    </button>
+                    <button class="call-btn call-end" onclick="endCall()">
+                        <i class="fas fa-phone-slash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Profile View -->
+            <div id="profile-view" class="profile-container hidden">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <div class="profile-img" id="profile-img">U</div>
+                        <div class="avatar-edit">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-info">
+                        <h1 class="profile-name" id="profile-name">Username</h1>
+                        <p class="profile-bio" id="profile-bio">No bio yet</p>
+                        
+                        <div class="profile-stats">
+                            <div class="stat-item">
+                                <div class="stat-value" id="friends-count">0</div>
+                                <div class="stat-label">Friends</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="messages-count">0</div>
+                                <div class="stat-label">Messages</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value member-since">Today</div>
+                                <div class="stat-label">Member since</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-form">
+                    <h2 style="margin-bottom: 1rem;">Edit Profile</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="edit-username">Username</label>
+                            <input type="text" id="edit-username" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label for="edit-bio">Bio</label>
+                            <textarea id="edit-bio" class="form-control" rows="3" maxlength="200" placeholder="Tell others about yourself..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Change Password (leave blank to keep current)</label>
+                            <div class="password-container">
+                                <input type="password" id="current-password" class="form-control" placeholder="Current password">
+                                <span class="password-toggle" onclick="togglePassword('current-password')">
+                                    <i class="far fa-eye"></i>
+                                </span>
+                            </div>
+                            <div class="password-container" style="margin-top: 0.5rem;">
+                                <input type="password" id="new-password" class="form-control" placeholder="New password">
+                                <span class="password-toggle" onclick="togglePassword('new-password')">
+                                    <i class="far fa-eye"></i>
+                                </span>
+                            </div>
+                            <div class="password-container" style="margin-top: 0.5rem;">
+                                <input type="password" id="confirm-new-password" class="form-control" placeholder="Confirm new password">
+                                <span class="password-toggle" onclick="togglePassword('confirm-new-password')">
+                                    <i class="far fa-eye"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-secondary">Cancel</button>
+                        <button id="save-profile-btn" class="btn">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const loginView = document.getElementById('login-view');
+        const signupView = document.getElementById('signup-view');
+        const authView = document.getElementById('auth-view');
+        const appView = document.getElementById('app-view');
+        const defaultView = document.getElementById('default-view');
+        const chatView = document.getElementById('chat-view');
+        const profileView = document.getElementById('profile-view');
+        const videoCallContainer = document.getElementById('video-call-container');
+        const friendsList = document.getElementById('friends-list');
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendMessageBtn = document.getElementById('send-message-btn');
+        const voiceCallBtn = document.getElementById('voice-call-btn');
+        const videoCallBtn = document.getElementById('video-call-btn');
+        
+        // Sample data
+        let currentUser = null;
+        let friends = [
+            { id: 1, name: 'Alex Johnson', status: 'Online', lastMessage: 'Hey, how are you doing?', unread: 2 },
+            { id: 2, name: 'Sarah Miller', status: 'Online', lastMessage: 'Can we meet tomorrow?', unread: 0 },
+            { id: 3, name: 'David Smith', status: 'Offline', lastMessage: 'Thanks for the help!', unread: 1 },
+            { id: 4, name: 'Emma Wilson', status: 'Offline', lastMessage: 'See you soon!', unread: 0 }
+        ];
+        
+        let activeFriend = null;
+        let messages = {};
+        
+        // Initialize some sample messages
+        friends.forEach(friend => {
+            messages[friend.id] = [
+                { id: 1, sender: 'them', text: friend.lastMessage, time: '10:30 AM' },
+                { id: 2, sender: 'me', text: 'Sure thing!', time: '10:32 AM' }
+            ];
+        });
+        
+        // Toggle between login and signup views
+        function showLogin() {
+            loginView.classList.remove('hidden');
+            signupView.classList.add('hidden');
+        }
+        
+        function showSignup() {
+            loginView.classList.add('hidden');
+            signupView.classList.remove('hidden');
+        }
+        
+        // Toggle password visibility
+        function togglePassword(id) {
+            const passwordInput = document.getElementById(id);
+            const toggleIcon = passwordInput.nextElementSibling.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+        
+        // Handle signup
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('signup-email').value;
+            const username = document.getElementById('signup-username').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            const marketingOptIn = document.getElementById('marketing-emails').checked;
+            
+            // Basic validation
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+            
+            // Create user object
+            currentUser = {
+                email: email,
+                username: username,
+                bio: '',
+                profileInitial: username.charAt(0).toUpperCase(),
+                friends: []
+            };
+            
+            // Simulate successful signup
+            authView.style.display = 'none';
+            appView.style.display = 'flex';
+            
+            // Redirect to profile customization
+            showProfile();
+            
+            // Initialize UI with user data
+            updateProfileUI();
+        });
+        
+        // Handle login
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const rememberMe = document.getElementById('remember-me').checked;
+            
+            // Simulate successful login
+            currentUser = {
+                email: email,
+                username: 'TestUser',
+                bio: 'Just testing TextNoodle!',
+                profileInitial: 'T',
+                friends: friends.map(f => f.id)
+            };
+            
+            authView.style.display = 'none';
+            appView.style.display = 'flex';
+            
+            // Initialize UI with user data
+            updateProfileUI();
+            renderFriendsList();
+        });
+        
+        // Update profile UI with user data
+        function updateProfileUI() {
+            if (!currentUser) return;
+            
+            document.getElementById('sidebar-username').textContent = currentUser.username;
+            document.getElementById('sidebar-profile-pic').textContent = currentUser.profileInitial;
+            
+            document.getElementById('profile-name').textContent = currentUser.username;
+            document.getElementById('profile-img').textContent = currentUser.profileInitial;
+            document.getElementById('profile-bio').textContent = currentUser.bio || 'No bio yet';
+            document.getElementById('friends-count').textContent = currentUser.friends ? currentUser.friends.length : 0;
+            document.getElementById('edit-username').value = currentUser.username;
+            document.getElementById('edit-bio').value = currentUser.bio || '';
+        }
+        
+        // Render friends list
+        function renderFriendsList() {
+            friendsList.innerHTML = '';
+            
+            friends.forEach(friend => {
+                const li = document.createElement('li');
+                li.className = 'friend-item';
+                li.dataset.id = friend.id;
+                li.innerHTML = `
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/56502470-89f8-4fc1-8472-ca83b8fff8c4.png" alt="Profile picture of ${friend.name}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 1rem;">
+                    <div>
+                        <div class="friend-name">${friend.name}</div>
+                        <div class="friend-status">${friend.status}</div>
+                    </div>
+                    ${friend.unread > 0 ? `<span class="badge" style="margin-left: auto; background-color: var(--primary); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem;">${friend.unread}</span>` : ''}
+                `;
+                
+                li.addEventListener('click', () => selectFriend(friend.id));
+                friendsList.appendChild(li);
+            });
+        }
+        
+        // Select a friend to chat with
+        function selectFriend(friendId) {
+            activeFriend = friends.find(f => f.id === friendId);
+            
+            // Update friend info in chat view
+            document.getElementById('chat-friend-name').textContent = activeFriend.name;
+            document.getElementById('chat-friend-pic').textContent = activeFriend.name.charAt(0).toUpperCase();
+            document.getElementById('chat-friend-status').textContent = activeFriend.status;
+            
+            // Show chat view
+            defaultView.style.display = 'none';
+            chatView.classList.remove('hidden');
+            profileView.classList.add('hidden');
+            
+            // Render messages
+            renderMessages(friendId);
+        }
+        
+        // Render messages for a conversation
+        function renderMessages(friendId) {
+            chatMessages.innerHTML = '';
+            
+            const friendMessages = messages[friendId] || [];
+            
+            friendMessages.forEach(msg => {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `message message-${msg.sender === 'me' ? 'outgoing' : 'incoming'}`;
+                msgDiv.innerHTML = `
+                    <div style="font-weight: 500; margin-bottom: 0.25rem;">${msg.sender === 'me' ? 'You' : activeFriend.name}</div>
+                    <div>${msg.text}</div>
+                    <div style="font-size: 0.7rem; color: ${msg.sender === 'me' ? 'rgba(255,255,255,0.7)' : '#888'}; margin-top: 0.25rem; text-align: right;">${msg.time}</div>
+                `;
+                chatMessages.appendChild(msgDiv);
+            });
+            
+            // Scroll to bottom of messages
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Send a new message
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text || !activeFriend) return;
+            
+            // Create new message
+            const newMessage = {
+                id: Date.now(),
+                sender: 'me',
+                text: text,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            
+            // Add to messages
+            if (!messages[activeFriend.id]) messages[activeFriend.id] = [];
+            messages[activeFriend.id].push(newMessage);
+            
+            // Clear input and render messages
+            messageInput.value = '';
+            renderMessages(activeFriend.id);
+        }
+        
+        // Refresh friends list
+        function refreshFriends() {
+            // Simulate fetching friends
+            renderFriendsList();
+        }
+        
+        // Show user profile
+        function showProfile() {
+            defaultView.style.display = 'none';
+            chatView.classList.add('hidden');
+            profileView.classList.remove('hidden');
+        }
+        
+        // Start a voice call
+        function startVoiceCall() {
+            if (!activeFriend) return;
+            
+            videoCallContainer.classList.remove('hidden');
+            document.getElementById('local-video').style.display = 'none';
+            
+            // In a real app, we'd connect WebRTC here
+            console.log(`Starting voice call with ${activeFriend.name}`);
+        }
+        
+        // Start a video call
+        function startVideoCall() {
+            if (!activeFriend) return;
+            
+            videoCallContainer.classList.remove('hidden');
+            document.getElementById('local-video').style.display = 'block';
+            
+            // In a real app, we'd connect WebRTC here
+            console.log(`Starting video call with ${activeFriend.name}`);
+            
+            // Simulate getting video streams
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(stream => {
+                    document.getElementById('local-video').srcObject = stream;
+                    // In a real app, we'd send this stream to the remote peer
+                })
+                .catch(error => {
+                    console.error('Error accessing media devices:', error);
+                });
+        }
+        
+        // End a call
+        function endCall() {
+            videoCallContainer.classList.add('hidden');
+            
+            // Stop all media streams
+            const localVideo = document.getElementById('local-video');
+            if (localVideo.srcObject) {
+                localVideo.srcObject.getTracks().forEach(track => track.stop());
+                localVideo.srcObject = null;
+            }
+        }
+        
+        // Toggle microphone
+        function toggleMic() {
+            const micBtn = document.querySelector('.mic-toggle i');
+            if (micBtn.classList.contains('fa-microphone')) {
+                micBtn.classList.remove('fa-microphone');
+                micBtn.classList.add('fa-microphone-slash');
+            } else {
+                micBtn.classList.remove('fa-microphone-slash');
+                micBtn.classList.add('fa-microphone');
+            }
+        }
+        
+        // Toggle video
+        function toggleVideo() {
+            const videoBtn = document.querySelector('.video-toggle i');
+            const localVideo = document.getElementById('local-video');
+            
+            if (videoBtn.classList.contains('fa-video')) {
+                videoBtn.classList.remove('fa-video');
+                videoBtn.classList.add('fa-video-slash');
+                localVideo.style.display = 'none';
+            } else {
+                videoBtn.classList.remove('fa-video-slash');
+                videoBtn.classList.add('fa-video');
+                localVideo.style.display = 'block';
+            }
+        }
+        
+        // Event listeners
+        sendMessageBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+        
+        voiceCallBtn.addEventListener('click', startVoiceCall);
+        videoCallBtn.addEventListener('click', startVideoCall);
+        
+        document.getElementById('new-chat-btn').addEventListener('click', function() {
+            alert('In a real implementation, this would open a dialog to select a friend to chat with');
+        });
+        
+        document.getElementById('save-profile-btn').addEventListener('click', function() {
+            const newUsername = document.getElementById('edit-username').value;
+            const newBio = document.getElementById('edit-bio').value;
+            
+            if (newUsername.length < 3) {
+                alert('Username must be at least 3 characters long');
+                return;
+            }
+            
+            currentUser.username = newUsername;
+            currentUser.bio = newBio;
+            currentUser.profileInitial = newUsername.charAt(0).toUpperCase();
+            
+            updateProfileUI();
+            alert('Profile updated successfully!');
+        });
+        
+        // Initialize UI
+        if (loginView) showLogin();
+    </script>
+</body>
+</html>
